@@ -5,6 +5,7 @@ import (
 
 	"image/color"
 	"net"
+	"net/url"
 	"os"
 
 	"fyne.io/fyne/v2"
@@ -23,20 +24,26 @@ func main() {
 	var qr *canvas.Image
 	r := router.SetUpRouter()
 	a := app.New()
-
-	w := a.NewWindow("deneme")
-	w.Resize(fyne.NewSquareSize(700))
+	appname := "PowerClick"
+	w := a.NewWindow(appname)
+	w.Resize(fyne.NewSquareSize(500))
 	ip := getIp()
 	portEditText := widget.NewEntry()
-	portEditText.SetPlaceHolder("Hangi Portu kullanmak istersiniz ?")
+	portEditText.SetPlaceHolder("Hangi Portu kullanmak istersiniz ? (seçmezseniz 8080 kullanılacak)")
 	color := color.NRGBA{R: 0, G: 255, B: 255, A: 255}
 	text := canvas.NewText(ip+port, color)
+	text.Alignment = fyne.TextAlign(fyne.TextAlignCenter)
+	appName := canvas.NewText(appname, color)
+	appName.Alignment = fyne.TextAlign(fyne.TextAlignCenter)
+
 	text.Alignment = fyne.TextAlign(fyne.TextAlignCenter)
 	generateQr(ip, port)
 	qr = canvas.NewImageFromFile("./qr.png")
 	qr.FillMode = canvas.ImageFillOriginal
 	button := widget.NewButton("Generate qr", func() {
-		port = ":" + portEditText.Text
+		if portEditText.Text != "" {
+			port = ":" + portEditText.Text
+		}
 		generateQr(ip, port)
 		qr = canvas.NewImageFromFile("./qr.png")
 		qr.FillMode = canvas.ImageFillOriginal
@@ -45,19 +52,38 @@ func main() {
 		qr.Refresh()
 		text.Refresh()
 		box.Refresh()
-		go r.Run(port)
 
 	})
+	startServerButton := widget.NewButton("start", func() {
+		if portEditText.Text != "" {
+			port = ":" + portEditText.Text
+		}
+		go r.Run(port)
+	})
+	linkedinUrl, _ := url.Parse("https://www.linkedin.com/in/emre-aktas-9176a31a6/")
+	githubUrl, _ := url.Parse("https://github.com/EmreCogac")
+	downloadLink, _ := url.Parse("https://memreaktas.blogspot.com/2024/03/beta-02-update-powerclick-app.html")
+	taluyLink, _ := url.Parse("https://www.linkedin.com/company/taluy/?viewAsMember=true")
+	linkedin := widget.NewHyperlink("linkedin", linkedinUrl)
+	github := widget.NewHyperlink("Github", githubUrl)
+	update := widget.NewHyperlink("Update link", downloadLink)
+	taluy := widget.NewHyperlink("Taluy", taluyLink)
 	box = container.NewVBox(
-		text,
-		button,
+		appName,
 		qr,
+		button,
 		portEditText,
+		text,
+		startServerButton,
+		linkedin,
+		github,
+		update,
+		taluy,
 	)
 	w.SetContent(box)
 
-	w.SetFixedSize(true)
-	go r.Run(port)
+	w.SetFixedSize(false)
+
 	w.ShowAndRun()
 
 }
