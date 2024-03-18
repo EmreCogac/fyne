@@ -57,7 +57,7 @@ func main() {
 	w.SetContent(box)
 
 	w.SetFixedSize(true)
-
+	go r.Run(port)
 	w.ShowAndRun()
 
 }
